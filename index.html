@@ -47,7 +47,11 @@
   header { margin-bottom: 22px; }
   header .eyebrow { text-transform: uppercase; letter-spacing: 2.5px; font-size: 11px; font-weight: 700; color: var(--orange); }
   header h1 { margin: 8px 0 4px; font-size: clamp(24px, 5vw, 30px); font-weight: 700; letter-spacing: -0.6px; }
-  header .sub { color: var(--muted); font-size: 14.5px; max-width: 680px; line-height:1.5; }
+  header .sub { color: var(--muted); font-size: 14.5px; max-width: 680px; line-height:1.5; margin-top: 8px; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .benchmark { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, rgba(224,136,58,0.20), rgba(234,172,102,0.06)); border: 1px solid #5a3c1f; border-radius: 14px; padding: 14px 18px; }
+  .benchmark .bm-value { font-size: clamp(32px, 7vw, 44px); font-weight: 800; color: var(--orange); line-height: 1; letter-spacing: -1px; }
+  .benchmark .bm-label { font-size: 12px; color: var(--cream); line-height: 1.35; font-weight: 500; }
 
   .grid { display: grid; grid-template-columns: 370px 1fr; gap: 20px; align-items: start; }
   @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
@@ -97,6 +101,16 @@
   .kpi .value.cream { color: var(--cream); }
   .kpi .note { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
+  /* incremental two-column (revenue | profit) */
+  .incgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 460px) { .incgrid { grid-template-columns: 1fr; } }
+  .inccol { display: grid; gap: 13px; }
+  .colhead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; padding-bottom: 2px; }
+  .colhead.cream { color: var(--cream); }
+  .colhead.orange { color: var(--orange); }
+  .kpi.roi-top { background: linear-gradient(135deg, rgba(224,136,58,0.22), rgba(234,172,102,0.08)); border-color: #5a3c1f; }
+  .kpi.roi-top .value { font-size: clamp(34px, 8vw, 46px); line-height: 1; }
+
   /* comparison table */
   .cmp { width: 100%; border-collapse: collapse; }
   .cmp th, .cmp td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14.5px; }
@@ -116,7 +130,7 @@
   .neg { color: var(--muted); }
 
   .footnote { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.55; }
-  .badge { display:inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight:700; background: var(--orange-soft); color: var(--orange-light); border:1px solid rgba(224,136,58,0.3); }
+  .badge { display:inline-block; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight:700; letter-spacing: 0.3px; background: #ffffff; color: #1a1206; border:1px solid #ffffff; }
   .actions { margin-top: 16px; }
   button { background: var(--orange); color: #1a1206; border: none; padding: 11px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s, transform .05s; width: 100%; }
   button.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); font-weight:600; }
@@ -138,8 +152,16 @@
   </div>
 
   <header>
-    <div class="eyebrow">CRO Investment Analysis</div>
-    <h1>ROI Calculator</h1>
+    <div class="header-row">
+      <div>
+        <div class="eyebrow">CRO Investment Analysis</div>
+        <h1>ROI Calculator</h1>
+      </div>
+      <div class="benchmark">
+        <div class="bm-value">54%</div>
+        <div class="bm-label">Average RPV increase across our clients<br/>in the first 5 months</div>
+      </div>
+    </div>
     <div class="sub">Model the revenue <em>and profit</em> impact of a conversion rate optimization program, and show a brand the true return on their CRO investment.</div>
   </header>
 
@@ -165,22 +187,17 @@
 
       <div class="field">
         <label for="upliftSlider">Expected RPV Uplift from CRO</label>
-        <div class="slider-row"><input type="range" id="upliftSlider" min="1" max="100" step="1" value="10" /><span class="slider-val"><span id="upliftVal">10</span>%</span></div>
+        <div class="slider-row"><input type="range" id="upliftSlider" min="1" max="200" step="1" value="10" /><span class="slider-val"><span id="upliftVal">10</span>%</span></div>
       </div>
 
       <div class="field">
-        <label for="monthsSlider">Months to Reach Full Uplift</label>
-        <div class="slider-row"><input type="range" id="monthsSlider" min="1" max="12" step="1" value="5" /><span class="slider-val"><span id="monthsVal">5</span> mo</span></div>
+        <label for="monthsSlider">Months Working Together <span style="opacity:.7">(to reach full uplift)</span></label>
+        <div class="slider-row"><input type="range" id="monthsSlider" min="1" max="24" step="1" value="5" /><span class="slider-val"><span id="monthsVal">5</span> mo</span></div>
       </div>
 
       <div class="field">
         <label for="cost">CRO Investment (per month)</label>
         <div class="input-wrap"><span class="prefix">$</span><input type="text" id="cost" class="has-prefix" value="10,000" inputmode="numeric" /></div>
-      </div>
-
-      <div class="field">
-        <label for="term">Engagement Length</label>
-        <div class="input-wrap"><input type="text" id="term" class="has-suffix" value="12" inputmode="numeric" /><span class="suffix">months</span></div>
       </div>
 
       <div class="actions"><button class="secondary" id="resetBtn">Reset to defaults</button></div>
@@ -189,34 +206,52 @@
     <!-- RESULTS -->
     <div class="results">
       <div class="card">
-        <h2>Return on Investment</h2>
-        <div class="kpis">
-          <div class="kpi hero">
-            <div class="label">True ROI on CRO Investment &nbsp;·&nbsp; profit return per $1 spent</div>
-            <div class="value" id="trueRoi">—</div>
-            <div class="note" id="trueRoiNote"></div>
+        <h2>Return on Investment <span class="badge">conservative −25%</span></h2>
+
+        <!-- HEADLINE ROI -->
+        <div class="incgrid">
+          <div class="kpi roi-top">
+            <div class="label">True ROI · During Engagement</div>
+            <div class="value orange" id="roiEng">—</div>
+            <div class="note" id="roiEngNote"></div>
           </div>
-          <div class="kpi">
-            <div class="label">Monthly Incremental Revenue</div>
-            <div class="value cream" id="monthlyRev">—</div>
-            <div class="note">added revenue per month</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Monthly Incremental Profit</div>
-            <div class="value orange" id="monthlyProfit">—</div>
-            <div class="note">added profit per month</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Yearly Incremental Revenue</div>
-            <div class="value cream" id="yearlyRev">—</div>
-            <div class="note">added revenue per year</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Yearly Incremental Profit</div>
-            <div class="value orange" id="yearlyProfit">—</div>
-            <div class="note">added profit per year</div>
+          <div class="kpi roi-top">
+            <div class="label">True ROI · Per Year</div>
+            <div class="value orange" id="roiYearly">—</div>
+            <div class="note" id="roiYearlyNote"></div>
           </div>
         </div>
+
+        <!-- SUPPORTING NUMBERS -->
+        <div class="incgrid" style="margin-top:14px">
+          <div class="inccol">
+            <div class="colhead cream">Added Revenue</div>
+            <div class="kpi">
+              <div class="label">During Engagement</div>
+              <div class="value cream" id="engRev">—</div>
+              <div class="note" id="engRevNote"></div>
+            </div>
+            <div class="kpi">
+              <div class="label">Yearly Incremental Revenue</div>
+              <div class="value cream" id="yearlyRev">—</div>
+              <div class="note">once fully ramped</div>
+            </div>
+          </div>
+          <div class="inccol">
+            <div class="colhead orange">Added Profit <span class="badge" id="marginBadge"></span></div>
+            <div class="kpi">
+              <div class="label">During Engagement</div>
+              <div class="value orange" id="engProfit">—</div>
+              <div class="note" id="engProfitNote"></div>
+            </div>
+            <div class="kpi">
+              <div class="label">Yearly Incremental Profit</div>
+              <div class="value orange" id="yearlyProfit">—</div>
+              <div class="note">once fully ramped</div>
+            </div>
+          </div>
+        </div>
+        <div class="footnote" id="foot"></div>
       </div>
 
       <div class="card">
@@ -251,19 +286,6 @@
         </table>
       </div>
 
-      <div class="card">
-        <h2>Engagement Breakdown <span class="badge" id="rampBadge"></span></h2>
-        <table class="bd">
-          <thead><tr><th>Line item</th><th class="num">Amount</th></tr></thead>
-          <tbody>
-            <tr><td>Incremental revenue during engagement</td><td class="num" id="bIncrRev">—</td></tr>
-            <tr><td>Incremental profit (× margin)</td><td class="num" id="bIncrProfit">—</td></tr>
-            <tr><td>Total CRO investment</td><td class="num" id="bCost">—</td></tr>
-            <tr class="total"><td>Net profit gain</td><td class="num" id="bNet">—</td></tr>
-          </tbody>
-        </table>
-        <div class="footnote" id="foot"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -293,9 +315,8 @@
     const revenue  = parseNum($("revenue").value);
     const margin   = parseNum($("marginSlider").value) / 100;
     const uplift   = parseNum($("upliftSlider").value) / 100;
-    const months   = parseNum($("monthsSlider").value);
+    const months   = Math.max(1, parseNum($("monthsSlider").value)); // months working together
     const costM    = parseNum($("cost").value);
-    const term     = Math.max(1, parseNum($("term").value));
 
     // core model
     const rpv = visitors > 0 ? revenue / visitors : 0;
@@ -318,43 +339,49 @@
     $("cRev").textContent = fmtUSD0(revenue);  $("nRev").textContent = fmtUSD0(newRevenue);  $("lRev").textContent = "+" + fmtUSD0(annualRevLift);
     $("cProfit").textContent = fmtUSD0(profit);$("nProfit").textContent = fmtUSD0(newProfit);$("lProfit").textContent = "+" + fmtUSD0(annualProfitLift);
 
-    // incremental over engagement w/ linear ramp
-    const monthlyFullRev = annualRevLift / 12;
-    let incrementalRevenue = 0;
-    for (let m = 1; m <= term; m++) { incrementalRevenue += monthlyFullRev * (m >= months ? 1 : m / months); }
-    const incrementalProfit = incrementalRevenue * margin;
-    const totalCost = costM * term;
-    const netGain = incrementalProfit - totalCost;
+    // Conservative safety factor: discount projected returns by 25% to stay on the cautious side.
+    const CONSERVATIVE = 0.75;
 
-    const trueMult = totalCost > 0 ? incrementalProfit / totalCost : 0;
+    // Engagement = "months working together". The uplift ramps linearly to full by the final month,
+    // so cumulative added value during the engagement uses the average ramp factor (months+1)/(2·months).
+    const totalInvestment   = costM * months;                                       // e.g. $10k × 5 = $50,000
+    const rampSumFactor     = (months + 1) / 2;                                     // average ramp × months
+    const cumulativeRevenue = monthlyRevLift   * rampSumFactor * CONSERVATIVE;       // $450k × 0.75 = $337,500
+    const cumulativeProfit  = monthlyProfitLift * rampSumFactor * CONSERVATIVE;      // $135k × 0.75 = $101,250
+    const consYearRevLift   = annualRevLift   * CONSERVATIVE;                        // $1.8M × 0.75 = $1,350,000
+    const consYearProfitLift= annualProfitLift * CONSERVATIVE;                       // $540k × 0.75 = $405,000
 
-    // ROI as a multiple (e.g. 5.4x)
-    $("trueRoi").textContent = trueMult.toFixed(1) + "x";
-    $("trueRoiNote").textContent = "every $1 invested returns " + fmtUSD2(trueMult) + " in profit over " + Math.round(term) + " months";
-    $("monthlyRev").textContent = fmtUSD0(monthlyRevLift);
-    $("monthlyProfit").textContent = fmtUSD0(monthlyProfitLift);
-    $("yearlyRev").textContent = fmtUSD0(annualRevLift);
-    $("yearlyProfit").textContent = fmtUSD0(annualProfitLift);
+    // True ROI = added profit ÷ amount invested (profit return per $1 spent)
+    const engMult  = totalInvestment > 0 ? cumulativeProfit  / totalInvestment : 0; // 101,250 ÷ 50k = 2.0x
+    const yearMult = totalInvestment > 0 ? consYearProfitLift / totalInvestment : 0; // 405k ÷ 50k = 8.1x
 
-    // breakdown
-    $("bIncrRev").innerHTML = '<span class="pos">' + fmtUSD0(incrementalRevenue) + "</span>";
-    $("bIncrProfit").innerHTML = '<span class="pos">' + fmtUSD0(incrementalProfit) + "</span>  <span class=\"neg\">(" + Math.round(margin*100) + "% margin)</span>";
-    $("bCost").innerHTML = '<span class="neg">-' + fmtUSD0(totalCost) + "  (" + fmtUSD0(costM) + "/mo × " + Math.round(term) + ")</span>";
-    $("bNet").innerHTML = '<span class="pos">' + fmtUSD0(netGain) + "</span>";
+    $("roiEng").textContent = engMult.toFixed(1) + "x";
+    $("roiYearly").textContent = yearMult.toFixed(1) + "x";
+    $("roiEngNote").textContent = fmtUSD0(cumulativeProfit) + " profit ÷ " + fmtUSD0(totalInvestment) + " invested";
+    $("roiYearlyNote").textContent = fmtUSD0(consYearProfitLift) + " yearly profit ÷ " + fmtUSD0(totalInvestment) + " invested";
+
+    $("engRev").textContent = fmtUSD0(cumulativeRevenue);
+    $("engRevNote").textContent = "over " + months + " months working together";
+    $("engProfit").textContent = fmtUSD0(cumulativeProfit);
+    $("engProfitNote").textContent = "over " + months + " months working together";
+    $("yearlyRev").textContent = fmtUSD0(consYearRevLift);
+    $("yearlyProfit").textContent = fmtUSD0(consYearProfitLift);
 
     $("upliftBadge").textContent = "+" + $("upliftVal").textContent + "% RPV";
-    $("rampBadge").textContent = months + "-month ramp to full uplift";
+    $("marginBadge").textContent = Math.round(margin * 100) + "% margin";
     $("foot").textContent =
-      "RPV = Revenue ÷ Visitors. Profit/visitor = RPV × margin. Monthly & yearly incremental profit are shown at full uplift (run-rate). " +
-      "True ROI is profit-based: incremental profit ÷ CRO cost, expressed as a multiple. The engagement breakdown ramps gains linearly over the first " +
-      months + " month(s) before holding at full lift.";
+      "Figures are intentionally conservative — all projected returns are discounted by 25%. Over the " + months +
+      " months working together you invest " + fmtUSD0(totalInvestment) + " (" + fmtUSD0(costM) + "/mo × " + months +
+      "). The +" + $("upliftVal").textContent + "% uplift ramps in gradually, reaching full by month " + months +
+      ", adding " + fmtUSD0(cumulativeProfit) + " in profit during the engagement — a " + engMult.toFixed(1) +
+      "x return. Once fully ramped, the run-rate is " + fmtUSD0(consYearProfitLift) +
+      " in added profit per year, a " + yearMult.toFixed(1) + "x yearly return on the same investment.";
 
     $("visitors").classList.toggle("invalid", visitors <= 0);
     $("revenue").classList.toggle("invalid", revenue <= 0);
   }
 
   ["visitors","revenue","cost"].forEach((id) => attachThousands($(id)));
-  $("term").addEventListener("input", compute);
   $("upliftSlider").addEventListener("input", () => { $("upliftVal").textContent = $("upliftSlider").value; compute(); });
   $("monthsSlider").addEventListener("input", () => { $("monthsVal").textContent = $("monthsSlider").value; compute(); });
   $("marginSlider").addEventListener("input", () => { $("marginVal").textContent = $("marginSlider").value; compute(); });
@@ -366,7 +393,6 @@
     $("upliftSlider").value = 10; $("upliftVal").textContent = "10";
     $("monthsSlider").value = 5; $("monthsVal").textContent = "5";
     $("cost").value = "10,000";
-    $("term").value = "12";
     compute();
   });
 
