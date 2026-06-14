@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Validare — CRO ROI Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --panel: #181818;
+    --panel-2: #202020;
+    --border: #2e2e2e;
+    --text: #faf9f6;
+    --muted: #9a958c;
+
+    --orange: #e0883a;
+    --orange-med: #eaac66;
+    --orange-light: #f2d2a4;
+    --cream: #fbf3e3;
+
+    --orange-soft: rgba(224,136,58,0.12);
+    --shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(1100px 520px at 85% -8%, rgba(224,136,58,0.10) 0%, transparent 60%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 28px 18px 56px;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+
+  /* Brand header */
+  .brandbar { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo .mark { height: 28px; width: auto; display: block; color: var(--text); }
+  .logo .word { font-weight: 600; font-size: 27px; letter-spacing: -0.5px; }
+
+  header { margin-bottom: 22px; }
+  header .eyebrow { text-transform: uppercase; letter-spacing: 2.5px; font-size: 11px; font-weight: 700; color: var(--orange); }
+  header h1 { margin: 8px 0 4px; font-size: clamp(24px, 5vw, 30px); font-weight: 700; letter-spacing: -0.6px; }
+  header .sub { color: var(--muted); font-size: 14.5px; max-width: 680px; line-height:1.5; }
+
+  .grid { display: grid; grid-template-columns: 370px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--muted); margin: 0 0 16px; font-weight:600; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 7px; font-weight:500; }
+  .input-wrap { position: relative; }
+  .input-wrap .prefix, .input-wrap .suffix {
+    position: absolute; top: 0; height: 100%; display: flex; align-items: center; color: var(--muted); font-size: 14px; pointer-events: none;
+  }
+  .input-wrap .prefix { left: 13px; }
+  .input-wrap .suffix { right: 13px; }
+  input[type="text"] {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    font-family: inherit; font-size: 16px; font-variant-numeric: tabular-nums; transition: border-color .15s, box-shadow .15s;
+  }
+  input.has-prefix { padding-left: 26px; }
+  input.has-suffix { padding-right: 64px; }
+  input:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+  input:disabled { color: var(--orange-light); opacity: 1; }
+  input.invalid { border-color: #d9534f; box-shadow: 0 0 0 3px rgba(217,83,79,0.15); }
+
+  .slider-row { display:flex; align-items:center; gap:12px; }
+  input[type="range"] { flex:1; accent-color: var(--orange); height: 22px; }
+  .slider-val { min-width: 62px; text-align:right; font-variant-numeric: tabular-nums; font-weight:600; color: var(--orange-light); }
+
+  .results { display: grid; gap: 18px; }
+
+  /* responsive KPI grid */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 13px; }
+  .kpi { background: linear-gradient(160deg, var(--panel-2), var(--panel)); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+  .kpi .label { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight:600; line-height:1.3; }
+  .kpi .value { font-size: clamp(22px, 4vw, 26px); font-weight: 700; margin-top: 8px; font-variant-numeric: tabular-nums; letter-spacing:-0.5px; }
+  .kpi.hero { grid-column: 1 / -1; background: linear-gradient(135deg, rgba(224,136,58,0.22), rgba(234,172,102,0.10)); border-color: #5a3c1f; }
+  .kpi.hero .value { font-size: clamp(40px, 11vw, 54px); color: var(--orange); line-height:1; }
+  .kpi .value.orange { color: var(--orange); }
+  .kpi .value.cream { color: var(--cream); }
+  .kpi .note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* comparison table */
+  .cmp { width: 100%; border-collapse: collapse; }
+  .cmp th, .cmp td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14.5px; }
+  .cmp th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .cmp th.colcur, .cmp td.colcur, .cmp th.colnew, .cmp td.colnew, .cmp th.collift, .cmp td.collift { text-align: right; font-variant-numeric: tabular-nums; }
+  .cmp td.metric { color: var(--text); font-weight: 500; }
+  .cmp td.colnew { color: var(--cream); font-weight: 600; }
+  .cmp td.collift { color: var(--orange); font-weight: 700; }
+  .cmp tr:last-child td { border-bottom: none; }
+
+  table.bd { width: 100%; border-collapse: collapse; }
+  table.bd th, table.bd td { text-align: left; padding: 11px 8px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  table.bd th { color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table.bd td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.bd tr.total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--border); padding-top: 14px; }
+  .pos { color: var(--orange); }
+  .neg { color: var(--muted); }
+
+  .footnote { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.55; }
+  .badge { display:inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight:700; background: var(--orange-soft); color: var(--orange-light); border:1px solid rgba(224,136,58,0.3); }
+  .actions { margin-top: 16px; }
+  button { background: var(--orange); color: #1a1206; border: none; padding: 11px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s, transform .05s; width: 100%; }
+  button.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); font-weight:600; }
+  button:hover { opacity: 0.92; }
+  button:active { transform: translateY(1px); }
+
+  @media (max-width: 460px) {
+    .cmp th, .cmp td { padding: 10px 5px; font-size: 13px; }
+    .card { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="logo">
+      <div class="word">validare</div>
+    </div>
+  </div>
+
+  <header>
+    <div class="eyebrow">CRO Investment Analysis</div>
+    <h1>ROI Calculator</h1>
+    <div class="sub">Model the revenue <em>and profit</em> impact of a conversion rate optimization program, and show a brand the true return on their CRO investment.</div>
+  </header>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>Inputs</h2>
+
+      <div class="field">
+        <label for="visitors">Yearly Visitors</label>
+        <div class="input-wrap"><input type="text" id="visitors" value="4,800,000" inputmode="numeric" /></div>
+      </div>
+
+      <div class="field">
+        <label for="revenue">Current Yearly Revenue</label>
+        <div class="input-wrap"><span class="prefix">$</span><input type="text" id="revenue" class="has-prefix" value="18,000,000" inputmode="numeric" /></div>
+      </div>
+
+      <div class="field">
+        <label for="marginSlider">Profit Margin</label>
+        <div class="slider-row"><input type="range" id="marginSlider" min="1" max="90" step="1" value="30" /><span class="slider-val"><span id="marginVal">30</span>%</span></div>
+      </div>
+
+      <div class="field">
+        <label for="upliftSlider">Expected RPV Uplift from CRO</label>
+        <div class="slider-row"><input type="range" id="upliftSlider" min="1" max="100" step="1" value="10" /><span class="slider-val"><span id="upliftVal">10</span>%</span></div>
+      </div>
+
+      <div class="field">
+        <label for="monthsSlider">Months to Reach Full Uplift</label>
+        <div class="slider-row"><input type="range" id="monthsSlider" min="1" max="12" step="1" value="5" /><span class="slider-val"><span id="monthsVal">5</span> mo</span></div>
+      </div>
+
+      <div class="field">
+        <label for="cost">CRO Investment (per month)</label>
+        <div class="input-wrap"><span class="prefix">$</span><input type="text" id="cost" class="has-prefix" value="10,000" inputmode="numeric" /></div>
+      </div>
+
+      <div class="field">
+        <label for="term">Engagement Length</label>
+        <div class="input-wrap"><input type="text" id="term" class="has-suffix" value="12" inputmode="numeric" /><span class="suffix">months</span></div>
+      </div>
+
+      <div class="actions"><button class="secondary" id="resetBtn">Reset to defaults</button></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results">
+      <div class="card">
+        <h2>Return on Investment</h2>
+        <div class="kpis">
+          <div class="kpi hero">
+            <div class="label">True ROI on CRO Investment &nbsp;·&nbsp; profit return per $1 spent</div>
+            <div class="value" id="trueRoi">—</div>
+            <div class="note" id="trueRoiNote"></div>
+          </div>
+          <div class="kpi">
+            <div class="label">Monthly Incremental Revenue</div>
+            <div class="value cream" id="monthlyRev">—</div>
+            <div class="note">added revenue per month</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Monthly Incremental Profit</div>
+            <div class="value orange" id="monthlyProfit">—</div>
+            <div class="note">added profit per month</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Yearly Incremental Revenue</div>
+            <div class="value cream" id="yearlyRev">—</div>
+            <div class="note">added revenue per year</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Yearly Incremental Profit</div>
+            <div class="value orange" id="yearlyProfit">—</div>
+            <div class="note">added profit per year</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Current vs Projected <span class="badge" id="upliftBadge"></span></h2>
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th class="metric">Metric</th>
+              <th class="colcur">Current</th>
+              <th class="colnew">Projected</th>
+              <th class="collift">Lift</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="metric">Revenue / Visitor</td>
+              <td class="colcur" id="cRpv">—</td><td class="colnew" id="nRpv">—</td><td class="collift" id="lRpv">—</td>
+            </tr>
+            <tr>
+              <td class="metric">Profit / Visitor</td>
+              <td class="colcur" id="cPpv">—</td><td class="colnew" id="nPpv">—</td><td class="collift" id="lPpv">—</td>
+            </tr>
+            <tr>
+              <td class="metric">Yearly Revenue</td>
+              <td class="colcur" id="cRev">—</td><td class="colnew" id="nRev">—</td><td class="collift" id="lRev">—</td>
+            </tr>
+            <tr>
+              <td class="metric">Yearly Profit</td>
+              <td class="colcur" id="cProfit">—</td><td class="colnew" id="nProfit">—</td><td class="collift" id="lProfit">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Engagement Breakdown <span class="badge" id="rampBadge"></span></h2>
+        <table class="bd">
+          <thead><tr><th>Line item</th><th class="num">Amount</th></tr></thead>
+          <tbody>
+            <tr><td>Incremental revenue during engagement</td><td class="num" id="bIncrRev">—</td></tr>
+            <tr><td>Incremental profit (× margin)</td><td class="num" id="bIncrProfit">—</td></tr>
+            <tr><td>Total CRO investment</td><td class="num" id="bCost">—</td></tr>
+            <tr class="total"><td>Net profit gain</td><td class="num" id="bNet">—</td></tr>
+          </tbody>
+        </table>
+        <div class="footnote" id="foot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const fmtUSD0 = (n) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
+  const fmtUSD2 = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const parseNum = (str) => { const v = parseFloat(String(str).replace(/[^0-9.\-]/g, "")); return isNaN(v) ? 0 : v; };
+
+  function attachThousands(el) {
+    el.addEventListener("input", () => {
+      const caretEnd = el.selectionStart === el.value.length;
+      const raw = el.value.replace(/[^0-9.]/g, "");
+      if (raw === "") { el.value = ""; compute(); return; }
+      const [int, dec] = raw.split(".");
+      let formatted = parseInt(int || "0", 10).toLocaleString("en-US");
+      if (dec !== undefined) formatted += "." + dec;
+      el.value = formatted;
+      if (caretEnd) el.setSelectionRange(el.value.length, el.value.length);
+      compute();
+    });
+  }
+
+  function compute() {
+    const visitors = parseNum($("visitors").value);
+    const revenue  = parseNum($("revenue").value);
+    const margin   = parseNum($("marginSlider").value) / 100;
+    const uplift   = parseNum($("upliftSlider").value) / 100;
+    const months   = parseNum($("monthsSlider").value);
+    const costM    = parseNum($("cost").value);
+    const term     = Math.max(1, parseNum($("term").value));
+
+    // core model
+    const rpv = visitors > 0 ? revenue / visitors : 0;
+    const newRpv = rpv * (1 + uplift);
+    const newRevenue = revenue * (1 + uplift);
+    const annualRevLift = newRevenue - revenue;
+
+    // profit layer
+    const ppv = rpv * margin;
+    const newPpv = newRpv * margin;
+    const profit = revenue * margin;
+    const newProfit = newRevenue * margin;
+    const annualProfitLift = annualRevLift * margin;
+    const monthlyRevLift = annualRevLift / 12;
+    const monthlyProfitLift = annualProfitLift / 12;
+
+    // current vs projected table
+    $("cRpv").textContent = fmtUSD2(rpv);      $("nRpv").textContent = fmtUSD2(newRpv);      $("lRpv").textContent = "+" + fmtUSD2(newRpv - rpv);
+    $("cPpv").textContent = fmtUSD2(ppv);      $("nPpv").textContent = fmtUSD2(newPpv);      $("lPpv").textContent = "+" + fmtUSD2(newPpv - ppv);
+    $("cRev").textContent = fmtUSD0(revenue);  $("nRev").textContent = fmtUSD0(newRevenue);  $("lRev").textContent = "+" + fmtUSD0(annualRevLift);
+    $("cProfit").textContent = fmtUSD0(profit);$("nProfit").textContent = fmtUSD0(newProfit);$("lProfit").textContent = "+" + fmtUSD0(annualProfitLift);
+
+    // incremental over engagement w/ linear ramp
+    const monthlyFullRev = annualRevLift / 12;
+    let incrementalRevenue = 0;
+    for (let m = 1; m <= term; m++) { incrementalRevenue += monthlyFullRev * (m >= months ? 1 : m / months); }
+    const incrementalProfit = incrementalRevenue * margin;
+    const totalCost = costM * term;
+    const netGain = incrementalProfit - totalCost;
+
+    const trueMult = totalCost > 0 ? incrementalProfit / totalCost : 0;
+
+    // ROI as a multiple (e.g. 5.4x)
+    $("trueRoi").textContent = trueMult.toFixed(1) + "x";
+    $("trueRoiNote").textContent = "every $1 invested returns " + fmtUSD2(trueMult) + " in profit over " + Math.round(term) + " months";
+    $("monthlyRev").textContent = fmtUSD0(monthlyRevLift);
+    $("monthlyProfit").textContent = fmtUSD0(monthlyProfitLift);
+    $("yearlyRev").textContent = fmtUSD0(annualRevLift);
+    $("yearlyProfit").textContent = fmtUSD0(annualProfitLift);
+
+    // breakdown
+    $("bIncrRev").innerHTML = '<span class="pos">' + fmtUSD0(incrementalRevenue) + "</span>";
+    $("bIncrProfit").innerHTML = '<span class="pos">' + fmtUSD0(incrementalProfit) + "</span>  <span class=\"neg\">(" + Math.round(margin*100) + "% margin)</span>";
+    $("bCost").innerHTML = '<span class="neg">-' + fmtUSD0(totalCost) + "  (" + fmtUSD0(costM) + "/mo × " + Math.round(term) + ")</span>";
+    $("bNet").innerHTML = '<span class="pos">' + fmtUSD0(netGain) + "</span>";
+
+    $("upliftBadge").textContent = "+" + $("upliftVal").textContent + "% RPV";
+    $("rampBadge").textContent = months + "-month ramp to full uplift";
+    $("foot").textContent =
+      "RPV = Revenue ÷ Visitors. Profit/visitor = RPV × margin. Monthly & yearly incremental profit are shown at full uplift (run-rate). " +
+      "True ROI is profit-based: incremental profit ÷ CRO cost, expressed as a multiple. The engagement breakdown ramps gains linearly over the first " +
+      months + " month(s) before holding at full lift.";
+
+    $("visitors").classList.toggle("invalid", visitors <= 0);
+    $("revenue").classList.toggle("invalid", revenue <= 0);
+  }
+
+  ["visitors","revenue","cost"].forEach((id) => attachThousands($(id)));
+  $("term").addEventListener("input", compute);
+  $("upliftSlider").addEventListener("input", () => { $("upliftVal").textContent = $("upliftSlider").value; compute(); });
+  $("monthsSlider").addEventListener("input", () => { $("monthsVal").textContent = $("monthsSlider").value; compute(); });
+  $("marginSlider").addEventListener("input", () => { $("marginVal").textContent = $("marginSlider").value; compute(); });
+
+  $("resetBtn").addEventListener("click", () => {
+    $("visitors").value = "4,800,000";
+    $("revenue").value = "18,000,000";
+    $("marginSlider").value = 30; $("marginVal").textContent = "30";
+    $("upliftSlider").value = 10; $("upliftVal").textContent = "10";
+    $("monthsSlider").value = 5; $("monthsVal").textContent = "5";
+    $("cost").value = "10,000";
+    $("term").value = "12";
+    compute();
+  });
+
+  compute();
+</script>
+</body>
+</html>
