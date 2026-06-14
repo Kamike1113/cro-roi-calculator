@@ -159,7 +159,7 @@
       </div>
       <div class="benchmark">
         <div class="bm-value">54%</div>
-        <div class="bm-label">Average RPV increase across our clients<br/>in the first 5 months</div>
+        <div class="bm-label">Avg. store RPV increase<br/>in the first 6 months</div>
       </div>
     </div>
     <div class="sub">Model the revenue <em>and profit</em> impact of a conversion rate optimization program, and show a brand the true return on their CRO investment.</div>
@@ -186,13 +186,8 @@
       </div>
 
       <div class="field">
-        <label for="upliftSlider">Expected RPV Uplift from CRO</label>
+        <label for="upliftSlider">RPV Lift from CRO <span style="opacity:.7">(winning variant vs control)</span></label>
         <div class="slider-row"><input type="range" id="upliftSlider" min="1" max="200" step="1" value="10" /><span class="slider-val"><span id="upliftVal">10</span>%</span></div>
-      </div>
-
-      <div class="field">
-        <label for="monthsSlider">Months Working Together <span style="opacity:.7">(to reach full uplift)</span></label>
-        <div class="slider-row"><input type="range" id="monthsSlider" min="1" max="24" step="1" value="5" /><span class="slider-val"><span id="monthsVal">5</span> mo</span></div>
       </div>
 
       <div class="field">
@@ -206,48 +201,41 @@
     <!-- RESULTS -->
     <div class="results">
       <div class="card">
-        <h2>Return on Investment <span class="badge">conservative −25%</span></h2>
+        <h2>Return on Investment <span class="badge" id="shrinkBadge"></span> <span class="badge">6-mo decay</span></h2>
 
         <!-- HEADLINE ROI -->
-        <div class="incgrid">
-          <div class="kpi roi-top">
-            <div class="label">True ROI · During Engagement</div>
-            <div class="value orange" id="roiEng">—</div>
-            <div class="note" id="roiEngNote"></div>
-          </div>
-          <div class="kpi roi-top">
-            <div class="label">True ROI · Per Year</div>
-            <div class="value orange" id="roiYearly">—</div>
-            <div class="note" id="roiYearlyNote"></div>
-          </div>
+        <div class="kpi roi-top" style="margin-bottom:14px">
+          <div class="label">True ROI · 6-Month Attribution Window</div>
+          <div class="value orange" id="roiEng">—</div>
+          <div class="note" id="roiEngNote"></div>
         </div>
 
         <!-- SUPPORTING NUMBERS -->
-        <div class="incgrid" style="margin-top:14px">
+        <div class="incgrid">
           <div class="inccol">
-            <div class="colhead cream">Added Revenue</div>
+            <div class="colhead cream">Attributed Revenue</div>
             <div class="kpi">
-              <div class="label">During Engagement</div>
+              <div class="label">6-Month Window</div>
               <div class="value cream" id="engRev">—</div>
-              <div class="note" id="engRevNote"></div>
+              <div class="note">credited to CRO after corrections</div>
             </div>
             <div class="kpi">
-              <div class="label">Yearly Incremental Revenue</div>
+              <div class="label">Monthly (average)</div>
               <div class="value cream" id="yearlyRev">—</div>
-              <div class="note">once fully ramped</div>
+              <div class="note">across the window</div>
             </div>
           </div>
           <div class="inccol">
-            <div class="colhead orange">Added Profit <span class="badge" id="marginBadge"></span></div>
+            <div class="colhead orange">Attributed Profit <span class="badge" id="marginBadge"></span></div>
             <div class="kpi">
-              <div class="label">During Engagement</div>
+              <div class="label">6-Month Window</div>
               <div class="value orange" id="engProfit">—</div>
-              <div class="note" id="engProfitNote"></div>
+              <div class="note">attributed revenue × margin</div>
             </div>
             <div class="kpi">
-              <div class="label">Yearly Incremental Profit</div>
+              <div class="label">Monthly (average)</div>
               <div class="value orange" id="yearlyProfit">—</div>
-              <div class="note">once fully ramped</div>
+              <div class="note">across the window</div>
             </div>
           </div>
         </div>
@@ -310,72 +298,63 @@
     });
   }
 
+  // Decay schedule across the 6-month attribution window (months 1–6).
+  const DECAY = [1.00, 1.00, 1.00, 0.80, 0.60, 0.40];
+  const DECAY_SUM = DECAY.reduce((a, b) => a + b, 0); // 4.8
+
   function compute() {
     const visitors = parseNum($("visitors").value);
-    const revenue  = parseNum($("revenue").value);
+    const revenue  = parseNum($("revenue").value);            // yearly net revenue
     const margin   = parseNum($("marginSlider").value) / 100;
-    const uplift   = parseNum($("upliftSlider").value) / 100;
-    const months   = Math.max(1, parseNum($("monthsSlider").value)); // months working together
+    const uplift   = parseNum($("upliftSlider").value) / 100; // RPV lift
     const costM    = parseNum($("cost").value);
 
-    // core model
+    const shrink = 0.80; // baked at 95% RPV statistical significance
+    const monthlyRevenue = revenue / 12;
+    const liftFactor = uplift / (1 + uplift);                 // methodology: lift / (1 + lift)
+
+    // --- Current vs Projected (raw measured test result, before attribution corrections) ---
     const rpv = visitors > 0 ? revenue / visitors : 0;
     const newRpv = rpv * (1 + uplift);
     const newRevenue = revenue * (1 + uplift);
     const annualRevLift = newRevenue - revenue;
-
-    // profit layer
-    const ppv = rpv * margin;
-    const newPpv = newRpv * margin;
-    const profit = revenue * margin;
-    const newProfit = newRevenue * margin;
+    const ppv = rpv * margin, newPpv = newRpv * margin;
+    const profit = revenue * margin, newProfit = newRevenue * margin;
     const annualProfitLift = annualRevLift * margin;
-    const monthlyRevLift = annualRevLift / 12;
-    const monthlyProfitLift = annualProfitLift / 12;
-
-    // current vs projected table
     $("cRpv").textContent = fmtUSD2(rpv);      $("nRpv").textContent = fmtUSD2(newRpv);      $("lRpv").textContent = "+" + fmtUSD2(newRpv - rpv);
     $("cPpv").textContent = fmtUSD2(ppv);      $("nPpv").textContent = fmtUSD2(newPpv);      $("lPpv").textContent = "+" + fmtUSD2(newPpv - ppv);
     $("cRev").textContent = fmtUSD0(revenue);  $("nRev").textContent = fmtUSD0(newRevenue);  $("lRev").textContent = "+" + fmtUSD0(annualRevLift);
     $("cProfit").textContent = fmtUSD0(profit);$("nProfit").textContent = fmtUSD0(newProfit);$("lProfit").textContent = "+" + fmtUSD0(annualProfitLift);
 
-    // Conservative safety factor: discount projected returns by 25% to stay on the cautious side.
-    const CONSERVATIVE = 0.75;
+    // --- Attribution methodology over the 6-month window ---
+    // Monthly attributed revenue (full) = monthly revenue × lift/(1+lift) × shrinkage.
+    const monthlyAttribFull = monthlyRevenue * liftFactor * shrink;
+    const windowAttribRev = monthlyAttribFull * DECAY_SUM;          // sum over months 1–6 with decay
+    const windowAttribProfit = windowAttribRev * margin;
+    const avgMonthlyAttribRev = windowAttribRev / 6;
+    const avgMonthlyAttribProfit = windowAttribProfit / 6;
 
-    // Engagement = "months working together". The uplift ramps linearly to full by the final month,
-    // so cumulative added value during the engagement uses the average ramp factor (months+1)/(2·months).
-    const totalInvestment   = costM * months;                                       // e.g. $10k × 5 = $50,000
-    const rampSumFactor     = (months + 1) / 2;                                     // average ramp × months
-    const cumulativeRevenue = monthlyRevLift   * rampSumFactor * CONSERVATIVE;       // $450k × 0.75 = $337,500
-    const cumulativeProfit  = monthlyProfitLift * rampSumFactor * CONSERVATIVE;      // $135k × 0.75 = $101,250
-    const consYearRevLift   = annualRevLift   * CONSERVATIVE;                        // $1.8M × 0.75 = $1,350,000
-    const consYearProfitLift= annualProfitLift * CONSERVATIVE;                       // $540k × 0.75 = $405,000
+    const windowInvestment = costM * 6;
+    const roiWindow = windowInvestment > 0 ? windowAttribProfit / windowInvestment : 0;
 
-    // True ROI = added profit ÷ amount invested (profit return per $1 spent)
-    const engMult  = totalInvestment > 0 ? cumulativeProfit  / totalInvestment : 0; // 101,250 ÷ 50k = 2.0x
-    const yearMult = totalInvestment > 0 ? consYearProfitLift / totalInvestment : 0; // 405k ÷ 50k = 8.1x
-
-    $("roiEng").textContent = engMult.toFixed(1) + "x";
-    $("roiYearly").textContent = yearMult.toFixed(1) + "x";
-    $("roiEngNote").textContent = fmtUSD0(cumulativeProfit) + " profit ÷ " + fmtUSD0(totalInvestment) + " invested";
-    $("roiYearlyNote").textContent = fmtUSD0(consYearProfitLift) + " yearly profit ÷ " + fmtUSD0(totalInvestment) + " invested";
-
-    $("engRev").textContent = fmtUSD0(cumulativeRevenue);
-    $("engRevNote").textContent = "over " + months + " months working together";
-    $("engProfit").textContent = fmtUSD0(cumulativeProfit);
-    $("engProfitNote").textContent = "over " + months + " months working together";
-    $("yearlyRev").textContent = fmtUSD0(consYearRevLift);
-    $("yearlyProfit").textContent = fmtUSD0(consYearProfitLift);
+    $("roiEng").textContent = roiWindow.toFixed(1) + "x";
+    $("roiEngNote").textContent = fmtUSD0(windowAttribProfit) + " attributed profit ÷ " + fmtUSD0(windowInvestment) + " invested (6 mo)";
+    $("engRev").textContent = fmtUSD0(windowAttribRev);
+    $("yearlyRev").textContent = fmtUSD0(avgMonthlyAttribRev);
+    $("engProfit").textContent = fmtUSD0(windowAttribProfit);
+    $("yearlyProfit").textContent = fmtUSD0(avgMonthlyAttribProfit);
 
     $("upliftBadge").textContent = "+" + $("upliftVal").textContent + "% RPV";
     $("marginBadge").textContent = Math.round(margin * 100) + "% margin";
+    $("shrinkBadge").textContent = "shrinkage ×" + shrink.toFixed(2);
+
     $("foot").textContent =
-      "Figures are intentionally conservative — all projected returns are discounted by 25%. Over the " + months +
-      " months working together you invest " + fmtUSD0(totalInvestment) + " (" + fmtUSD0(costM) + "/mo × " + months +
-      "). The +" + $("upliftVal").textContent + "% uplift ramps in gradually, reaching full by month " + months +
-      ", adding " + fmtUSD0(cumulativeProfit) + " in profit during the engagement — a " + engMult.toFixed(1) +
-      "x return. Once fully ramped, the run-rate is " + fmtUSD0(consYearProfitLift) +
-      " in added profit per year, a " + yearMult.toFixed(1) + "x yearly return on the same investment.";
+      "Attribution methodology: monthly attributed revenue = monthly net revenue (" + fmtUSD0(monthlyRevenue) +
+      "/mo) × RPV lift/(1+lift) (" + (liftFactor*100).toFixed(1) +
+      "%) × shrinkage (×" + shrink.toFixed(2) + "), summed across a 6-month window with a decay schedule " +
+      "(1·1·1·0.8·0.6·0.4 = " + DECAY_SUM.toFixed(1) + "). That credits " + fmtUSD0(windowAttribRev) +
+      " in revenue / " + fmtUSD0(windowAttribProfit) + " in profit against " + fmtUSD0(windowInvestment) +
+      " invested — a " + roiWindow.toFixed(1) + "x return. Stacking cap (25% of net revenue) applies when multiple winners run together.";
 
     $("visitors").classList.toggle("invalid", visitors <= 0);
     $("revenue").classList.toggle("invalid", revenue <= 0);
@@ -383,7 +362,6 @@
 
   ["visitors","revenue","cost"].forEach((id) => attachThousands($(id)));
   $("upliftSlider").addEventListener("input", () => { $("upliftVal").textContent = $("upliftSlider").value; compute(); });
-  $("monthsSlider").addEventListener("input", () => { $("monthsVal").textContent = $("monthsSlider").value; compute(); });
   $("marginSlider").addEventListener("input", () => { $("marginVal").textContent = $("marginSlider").value; compute(); });
 
   $("resetBtn").addEventListener("click", () => {
@@ -391,7 +369,6 @@
     $("revenue").value = "18,000,000";
     $("marginSlider").value = 30; $("marginVal").textContent = "30";
     $("upliftSlider").value = 10; $("upliftVal").textContent = "10";
-    $("monthsSlider").value = 5; $("monthsVal").textContent = "5";
     $("cost").value = "10,000";
     compute();
   });
